@@ -660,6 +660,28 @@ export default class Problem extends Model {
       await user.save();
     }
 
+    let lists = await List.find();
+    for (let list of lists) {
+      let problems = yaml.load(list.problems);
+      let flag = false;
+      if (problems['type'] == 'array') {
+        if (problems['id'].includes(this.id)) {
+          problems['id'] = problems['id'].filter(p => p != this.id);
+          flag = true;
+        }
+      } else {
+        for (let i in problems['id']) {
+          if (problems['id'][i] == this.id) {
+            delete problems['id'][i], flag = true;
+          }
+        }
+      }
+      if (flag) {
+        list.problems = yaml.dump(problems);
+        await list.save();
+      }
+    }
+
     problemTagCache.del(this.id);
 
     await entityManager.query('DELETE FROM `judge_state`           WHERE `problem_id` = ' + this.id);
