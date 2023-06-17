@@ -1,6 +1,6 @@
 const { getCachedJudgeState } = require('./judger');
 
-const getSubmissionInfo = (s, displayConfig) => ({
+const getSubmissionInfo = async (s, displayConfig) => ({
     submissionId: s.id,
     taskId: s.task_id,
     user: s.user.username,
@@ -8,6 +8,7 @@ const getSubmissionInfo = (s, displayConfig) => ({
     problemName: s.problem.title,
     problemId: s.problem_id,
     realProblemId: s.problem.id,
+    fullScore: await syzoj.utils.fullScore(s.problem.getTestdataPath()),
     language: displayConfig.showCode ? ((s.language != null && s.language !== '') ? syzoj.languages[s.language].show : null) : null,
     codeSize: displayConfig.showCode ? s.code_length : null,
     submitTime: syzoj.utils.formatDate(s.submit_time),

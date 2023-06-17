@@ -141,6 +141,25 @@ module.exports = {
   gravatar(email, size) {
     return gravatar.url(email, { s: size, d: 'mm' }).replace('//www.gravatar.com/avatar', syzoj.config.gravatar_url);
   },
+  async fullScore(dir) {
+    if (!await syzoj.utils.isDir(dir)) return 100;
+
+    try {
+      let list = await (await fs.readdirAsync(dir)).filterAsync(async x => await syzoj.utils.isFile(path.join(dir, x)));
+      if(list.includes('data.yml')) {
+        let config = require('js-yaml').load((await fs.readFileAsync(dir + '/data.yml')));
+        let sum = 0;
+        for (let st of config.subtasks) {
+          sum += st.score;
+        }
+        return sum;
+      } else {
+        return 100;
+      }
+    } catch (e) {
+      return 100;
+    }
+  },
   async parseTestdata(dir, submitAnswer) {
     if (!await syzoj.utils.isDir(dir)) return null;
 

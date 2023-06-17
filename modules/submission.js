@@ -127,8 +127,8 @@ app.get('/submissions', async (req, res) => {
     });
 
     res.render('submissions', {
-      items: judge_state.map(x => ({
-        info: getSubmissionInfo(x, displayConfig),
+      items: await Promise.all(judge_state.map(async x => ({
+        info: await getSubmissionInfo(x, displayConfig),
         token: (x.pending && x.task_id != null) ? jwt.sign({
           taskId: x.task_id,
           type: 'rough',
@@ -136,7 +136,7 @@ app.get('/submissions', async (req, res) => {
         }, syzoj.config.session_secret) : null,
         result: getRoughResult(x, displayConfig, true),
         running: false,
-      })),
+      }))),
       paginate: paginate,
       pushType: 'rough',
       form: req.query,
@@ -191,7 +191,7 @@ app.get('/submission/:id', app.useRestriction, async (req, res) => {
 
     displayConfig.showRejudge = await judge.problem.isAllowedEditBy(res.locals.user);
     res.render('submission', {
-      info: getSubmissionInfo(judge, displayConfig),
+      info: await getSubmissionInfo(judge, displayConfig),
       roughResult: getRoughResult(judge, displayConfig, false),
       code: (judge.problem.type !== 'submit-answer') ? judge.code.toString("utf8") : '',
       formattedCode: judge.formattedCode ? judge.formattedCode.toString("utf8") : null,

@@ -43,7 +43,7 @@ Vue.component('submission-item', {
       return userUrl.replace('20000528', this.data.info.userId);
     },
     scoreClass() {
-      return "score_" + Math.min(10, parseInt(this.data.result.score / 10) || 0).toString();
+      return "score_" + Math.min(10, parseInt(this.data.result.score / this.data.info.fullScore * 10) || 0).toString();
     }
   },
   methods: {

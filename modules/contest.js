@@ -92,7 +92,7 @@ app.post('/contest/:id/edit', async (req, res) => {
     } else {
       // if contest exists, both system administrators and contest administrators can edit it.
       if (!res.locals.user || (!res.locals.user.is_admin && !contest.admins.includes(res.locals.user.id.toString()))) throw new ErrorMessage('您没有权限进行此操作。');
-      
+
       await contest.loadRelationships();
       ranklist = contest.ranklist;
     }
@@ -451,8 +451,8 @@ app.get('/contest/:id/submissions', async (req, res) => {
     const pushType = displayConfig.showResult ? 'rough' : 'compile';
     res.render('submissions', {
       contest: contest,
-      items: judge_state.map(x => ({
-        info: getSubmissionInfo(x, displayConfig),
+      items: await Promise.all(judge_state.map(async x => ({
+        info: await getSubmissionInfo(x, displayConfig),
         token: (getRoughResult(x, displayConfig) == null && x.task_id != null) ? jwt.sign({
           taskId: x.task_id,
           type: pushType,
@@ -460,7 +460,7 @@ app.get('/contest/:id/submissions', async (req, res) => {
         }, syzoj.config.session_secret) : null,
         result: getRoughResult(x, displayConfig),
         running: false,
-      })),
+      }))),
       paginate: paginate,
       form: req.query,
       displayConfig: displayConfig,
@@ -516,7 +516,7 @@ app.get('/contest/submission/:id', app.useRestriction, async (req, res) => {
     }
 
     res.render('submission', {
-      info: getSubmissionInfo(judge, displayConfig),
+      info: await getSubmissionInfo(judge, displayConfig),
       roughResult: getRoughResult(judge, displayConfig),
       code: (displayConfig.showCode && judge.problem.type !== 'submit-answer') ? judge.code.toString("utf8") : '',
       formattedCode: judge.formattedCode ? judge.formattedCode.toString("utf8") : null,
