@@ -159,7 +159,13 @@ app.get('/contest/:id', app.useRestriction, async (req, res) => {
       });
     }
 
-    problems = problems.map(x => ({ problem: x, status: null, judge_id: null, statistics: null }));
+    problems = await problems.mapAsync(async x => ({
+      problem: x,
+      fullScore: await syzoj.utils.fullScore(x.getTestdataPath()),
+      status: null,
+      judge_id: null,
+      statistics: null
+    }));
     if (player) {
       for (let problem of problems) {
         if (contest.type === 'noi') {
@@ -178,7 +184,7 @@ app.get('/contest/:id', app.useRestriction, async (req, res) => {
             problem.judge_id = player.score_details[problem.problem.id].judge_id;
             await contest.loadRelationships();
             let multiplier = contest.ranklist.ranking_params[problem.problem.id] || 1.0;
-            problem.feedback = (judge_state.score * multiplier).toString() + ' / ' + (100 * multiplier).toString();
+            problem.feedback = (judge_state.score * multiplier).toString() + ' / ' + (problem.fullScore * multiplier).toString();
           }
         } else if (contest.type === 'acm') {
           if (player.score_details[problem.problem.id]) {
@@ -210,7 +216,7 @@ app.get('/contest/:id', app.useRestriction, async (req, res) => {
         for (let player of players) {
           if (player.score_details[problem.problem.id]) {
             problem.statistics.attempt++;
-            if ((contest.type === 'acm' && player.score_details[problem.problem.id].accepted) || ((contest.type === 'noi' || contest.type === 'ioi' || contest.type === 'crt') && player.score_details[problem.problem.id].score === 100)) {
+            if ((contest.type === 'acm' && player.score_details[problem.problem.id].accepted) || ((contest.type === 'noi' || contest.type === 'ioi' || contest.type === 'crt') && player.score_details[problem.problem.id].score == problem.fullScore)) {
               problem.statistics.accepted++;
             }
 
@@ -288,7 +294,11 @@ app.get('/contest/:id/ranklist', async (req, res) => {
     });
 
     let problems_id = await contest.getProblems();
-    let problems = await problems_id.mapAsync(async id => await Problem.findById(id));
+    let problems = await problems_id.mapAsync(async id => {
+      let p = await Problem.findById(id);
+      p.fullScore = await syzoj.utils.fullScore(p.getTestdataPath());
+      return p;
+    });
 
     res.render('contest_ranklist', {
       contest: contest,
