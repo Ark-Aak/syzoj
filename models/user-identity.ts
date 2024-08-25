@@ -29,6 +29,7 @@ interface UserIdentityDto {
   creation_time: string;
   update_time: string;
   review_time: string;
+  luogu_uid: number;
 }
 
 interface UserIdentityStatDto {
@@ -61,6 +62,9 @@ export default class UserIdentity extends Model {
   @TypeORM.Column({ nullable: true, type: "integer" })
   oierdb_id: number;
 
+  @TypeORM.Column({ nullable: true, type: "integer" })
+  luogu_uid: number;
+
   @TypeORM.Index()
   @TypeORM.Column({ type: "enum", enum: ReviewStatus, default: ReviewStatus.pending })
   status: ReviewStatus;
@@ -91,6 +95,7 @@ export default class UserIdentity extends Model {
       graduation_year: this.graduation_year,
       oierdb_id: this.oierdb_id,
       status: this.status,
+      luogu_uid: this.luogu_uid,
       creation_time: date2str(this.creation_time),
       update_time: date2str(this.update_time),
       review_time: date2str(this.review_time)

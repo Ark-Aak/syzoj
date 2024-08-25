@@ -54,6 +54,9 @@ export default class Article extends Model {
   @TypeORM.Column({ default: true, type: "boolean" })
   allow_comment: boolean;
 
+  @TypeORM.Column({ default: true, type: "boolean" })
+  is_show: boolean;
+
   @TypeORM.Index()
   @TypeORM.Column({ nullable: true, type: "boolean" })
   is_notice: boolean;
@@ -65,6 +68,9 @@ export default class Article extends Model {
   @TypeORM.Column({ type: "integer", default: 0 })
   vote_down: number;
 
+  @TypeORM.Column({ type: "integer", default: 0 })
+  priority: number;
+
   user?: User;
   problem?: Problem;
 
@@ -73,11 +79,15 @@ export default class Article extends Model {
   }
 
   async isAllowedEditBy(user) {
-    return user && (user.is_admin || this.user_id === user.id);
+    return user && (await user.hasPrivilege('manage_discussion') || this.user_id === user.id);
   }
 
   async isAllowedCommentBy(user) {
-    return user && (this.allow_comment || user.is_admin || this.user_id === user.id);
+    return user && (this.allow_comment || await user.hasPrivilege('manage_discussion') || this.user_id === user.id);
+  }
+
+  async isAllowedVisitBy(user) {
+    return this.is_show || (user && await user.hasPrivilege('manage_discussion') || this.user_id === user.id);
   }
 
   async resetReplyCountAndTime() {

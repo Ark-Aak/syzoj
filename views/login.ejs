@@ -46,18 +46,62 @@
 </div>
 <script src="<%- lib('blueimp-md5/2.10.0/js/md5.min.js') %>"></script>
 <script type="text/javascript">
+
+const defaultBackgroundColor = 'rgba(0, 0, 0, 0.8)';
+const defaultColor = 'white'
+
 function key_login(event) {
     if (event.keyCode == 13) {
         login();
     }
 }
 function show_error(error) {
-    $("#error").text(error);
-    $("#error").show();
+    $("#login").removeClass("loading");
+    $("#login").stop(true, true);
+	setTimeout(() => {$("#login").text(error)}, 50);
+    $("#login").animate({ backgroundColor: "#E74C3C", color: defaultColor }, 300, () => {
+	});
+    setTimeout(() => {
+        $("#login").stop(true, true);
+        $("#login").animate({ backgroundColor: "#E0E1E2", color: 'rgba(0,0,0,.6)' }, 300, () => {
+            $("#login").text("登录");
+        });
+        $('#login').off("mouseenter");
+        $('#login').off("mouseleave");
+        $('#login').mouseenter(function(){
+            $(this).stop(true, true);
+            $(this).animate({ backgroundColor: "#0E90D2", color: defaultColor }, 300); // 鼠标进入时渐变到指定颜色
+        });
+        $('#login').mouseleave(function(){
+            $(this).stop(true, true);
+            $(this).animate({ backgroundColor: "#E0E1E2", color: 'rgba(0,0,0,.6)' }, 300);
+        });
+    }, 1300);
 }
 function success(session_id) {
-    window.location.href = location.protocol + '//' + location.host + <%- serializejs(req.query.url || '/') %>;
+    $("#login").stop(true, true);
+    $("#login").animate({ backgroundColor: "#52C41A", color: defaultColor }, 300);
+    $("#login").text("登录成功");
+	$("#login").removeClass("loading");
+    setTimeout(() => {
+        window.location.href = location.protocol + '//' + location.host + <%- serializejs(req.query.url || '/') %>;
+    }, 1200);
 }
+$('#login').mouseleave(function(){
+    $(this).stop(true, true);
+    $(this).animate({ backgroundColor: "#E0E1E2", color: 'rgba(0,0,0,.6)' }, 300);
+});
+$('#login').mouseenter(function(){
+    $(this).stop(true, true);
+    $(this).animate({ backgroundColor: "#0E90D2", color: defaultColor }, 300); // 鼠标进入时渐变到指定颜色
+});
+$('#password').attr('placeholder', '密码');
+$("#login").click(function() {
+    $('#login').off("mouseenter");
+    $('#login').off("mouseleave");
+    $('#login').mouseenter(function(){});
+    $('#login').mouseleave(function(){});
+});
 function login() {
     password = md5($("#password").val() + "syzoj2_xxx");
     $("#login").addClass("loading");

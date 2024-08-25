@@ -31,44 +31,50 @@ if (contest) {
         <% } %>
       </h1>
     </div>
+    <div class="row" style="margin-top: -15px">
     <% if (problem.type !== 'submit-answer') { %>
-      <div class="row" style="margin-top: -15px">
-          <span class="ui label">内存限制：<%= problem.memory_limit %> MiB</span>
-          <span class="ui label">时间限制：<%= problem.time_limit %> ms</span>
+          <span class="ui label"><i class="microchip icon"></i><%= problem.memory_limit %> MiB</span>
+          <span class="ui label"><i class="clock icon"></i><%= problem.time_limit %> ms</span>
           <% if (problem.type === 'interaction') { %>
-            <span class="ui label">题目类型：交互</span>
-          <% } else if (problem.file_io) { %>
-            <span class="ui label">输入文件：<a href="javascript:;" title="点击复制" data-click-copy="<%= problem.file_io_input_name %>"><%= problem.file_io_input_name %></a></span>
-            <span class="ui label">输出文件：<a href="javascript:;" title="点击复制" data-click-copy="<%= problem.file_io_output_name %>"><%= problem.file_io_output_name %></a></span>
-          <% } else { %>
-            <span class="ui label">标准输入输出</span>
+            <span class="ui label"><i class="book icon"></i>交互</span>
           <% } %>
-      </div>
     <% } %>
     <% if (problem.type !== 'interaction') { %>
-      <div class="row" style="margin-top: -<%= problem.type === 'submit-answer' ? 15 : 23 %>px">
-          <span class="ui label">题目类型：<%= { 'submit-answer': '答案提交', 'interaction': '交互', 'traditional': '传统' }[problem.type] %></span>
-          <span class="ui label">评测方式：<%= (testcases && !testcases.error) ? (testcases.spj ? 'Special Judge' : '文本比较') : '无测试数据' %></span>
-      </div>
+          <span class="ui label"><i class="book icon"></i><%= { 'submit-answer': '答案提交', 'interaction': '交互', 'traditional': '传统' }[problem.type] %></span>
+          <span class="ui label"><i class="server icon"></i><%= (testcases && !testcases.error) ? (testcases.spj ? 'Special Judge' : '文本比较') : '无测试数据' %></span>
     <% } %>
+    <% if (problem.type !== 'submit-answer') { %>
+          <% if (problem.type !== 'interaction') { %>
+            <% if (problem.file_io) { %>
+              <span class="ui label"><i class="file icon"></i><a href="javascript:;" title="点击复制" data-click-copy="<%= problem.file_io_input_name %>"><%= problem.file_io_input_name %></a> / <a href="javascript:;" title="点击复制" data-click-copy="<%= problem.file_io_output_name %>"><%= problem.file_io_output_name %></a></span>
+            <% } else { %>
+              <span class="ui label"><i class="file icon"></i>Standard IO</span>
+            <% } %>
+          <% } %>
+    <% } %>
+    </div>
     <% if (!contest) { %>
         <div class="row" style="margin-top: -23px">
             <span class="ui label">上传者：
             <% if (problem.is_anonymous && !problem.allowedManage) { %>
               匿名
             <% } else { %>
-              <a href="<%= syzoj.utils.makeUrl(['user', problem.user_id]) %>"><%= problem.user.username %></a>
+              <a href="<%= syzoj.utils.makeUrl(['user', problem.user_id]) %>"><span class="user-<%= syzoj.utils.makeUserColor(problem.user.rating, problem.user.is_admin, problem.user.is_cheater) %>"><%= problem.user.username %></span></a>
             <% } %>
             </span>
             <% if (problem.allowedManage) { %>
                 <span class="ui label">公开者：
                 <% if (problem.publicizer) { %>
-                  <a href="<%= syzoj.utils.makeUrl(['user', problem.publicizer_id]) %>"><%= problem.publicizer.username %></a>
+                  <a href="<%= syzoj.utils.makeUrl(['user', problem.publicizer_id]) %>"><span class="user-<%= syzoj.utils.makeUserColor(problem.publicizer.rating, problem.publicizer.is_admin, problem.publicizer.is_cheater) %>"><%= problem.publicizer.username %></span></a>
                 <% } else { %>
                   未知
                 <% } %>
                 </span>
             <% } %>
+            <span class="ui label">
+              <i class="ui puzzle piece icon"></i>
+              <%= problem.difficulty %>
+            </span>
         </div>
     <% } %>
 </div>

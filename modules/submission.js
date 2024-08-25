@@ -203,6 +203,8 @@ app.get('/submission/:id', app.useRestriction, async (req, res) => {
         displayConfig: displayConfig
       }, syzoj.config.session_secret) : null,
       displayConfig: displayConfig,
+      is_admin: await judge.problem.isAllowedEditBy(res.locals.user),
+      in_contest: judge.type != 0
     });
   } catch (e) {
     syzoj.log(e);
@@ -225,6 +227,36 @@ app.post('/submission/:id/rejudge', async (req, res) => {
     if (!allowedRejudge) throw new ErrorMessage('您没有权限进行此操作。');
 
     await judge.rejudge();
+
+    res.redirect(syzoj.utils.makeUrl(['submission', id]));
+  } catch (e) {
+    syzoj.log(e);
+    res.render('error', {
+      err: e
+    });
+  }
+});
+
+app.post('/submission/:id/cancel', async (req, res) => {
+  try {
+    let id = parseInt(req.params.id);
+    let judge = await JudgeState.findById(id);
+
+    if (judge.pending) throw new ErrorMessage('无法取消一个评测中的提交的成绩。');
+
+    await judge.loadRelationships();
+
+    let allowedCancel = await judge.problem.isAllowedEditBy(res.locals.user);
+    if (!allowedCancel) throw new ErrorMessage('您没有权限进行此操作。');
+
+    await judge.cancel();
+    
+    const problem = await Problem.findOne({where: { id: judge.problem.id }});
+    await problem.loadRelationships();
+    await problem.resetSubmissionCount();
+
+    const user = await User.findOne({where: {id : judge.user_id}});
+    await user.refreshSubmitInfo();
 
     res.redirect(syzoj.utils.makeUrl(['submission', id]));
   } catch (e) {

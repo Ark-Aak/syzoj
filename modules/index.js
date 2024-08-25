@@ -3,6 +3,7 @@ let Article = syzoj.model('article');
 let Contest = syzoj.model('contest');
 let Problem = syzoj.model('problem');
 let Divine = syzoj.lib('divine');
+let Feed = syzoj.model('feed');
 let TimeAgo = require('javascript-time-ago');
 let zh = require('../libs/timeago');
 TimeAgo.locale(zh);
@@ -57,6 +58,21 @@ app.get('/', async (req, res) => {
       });
     }
 
+    let query = Feed.createQueryBuilder();
+    query.orderBy('time', 'DESC')
+         .limit(30);
+    let feeds = await query.getMany();
+
+    for (let feed of feeds) { 
+      await feed.loadRelationships();
+      feed.rendered_content = await syzoj.utils.markdown(feed.content);
+    }
+
+    const daysChinese = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+    const DATE = new Date(syzoj.utils.getCurrentDate() * 1000);
+
+    const monthChinese = ['一月大', '二月小', '三月大', '四月小', '五月大', '六月小', '七月大', '八月大', '九月小', '十月大', '冬月小', '腊月大'];
+
     res.render('index', {
       ranklist: ranklist,
       notices: notices,
@@ -64,7 +80,16 @@ app.get('/', async (req, res) => {
       contests: contests,
       problems: problems,
       todoList: todoList,
-      links: syzoj.config.links
+      links: syzoj.config.links,
+      tar_year: year,
+      tar_day: day,
+      tar_color: tar_color,
+      tar_arc: day / 365 * 409,
+      tar_name: tar_name,
+      feeds: feeds,
+      date: DATE.getDate(),
+      days: daysChinese[DATE.getDay()],
+      month: monthChinese[DATE.getMonth()]
     });
   } catch (e) {
     syzoj.log(e);
@@ -73,6 +98,20 @@ app.get('/', async (req, res) => {
     });
   }
 });
+
+app.post('/signin', async (req, res) => {
+  try {
+    if (!res.locals.user) throw new ErrorMessage('请登录后继续。', { '登录': syzoj.utils.makeUrl(['login'], { 'url': req.originalUrl }) });
+    if (!res.locals.user.canSignIn()) throw new ErrorMessage('你今天已经签过到了，不要着急哦。');
+    await res.locals.user.updateSignIn();
+    res.redirect('/');
+  } catch (e) {
+    syzoj.log(e);
+    res.render('error', {
+      err: e
+    });
+  }
+})
 
 app.get('/help', async (req, res) => {
   try {
@@ -84,3 +123,32 @@ app.get('/help', async (req, res) => {
     });
   }
 });
+
+let getTarDay = function () {
+  return new Date(2024, 10, 31);
+}
+let year = new Date ().getFullYear ();
+let day = parseInt ((getTarDay (year) - new Date ()) / (1000 * 60 * 60 * 24));
+if (day == -1) {
+  day = 0;
+}
+else if (day < -1) {
+  ++year;
+  day = parseInt ((getTarDay (year) - new Date ()) / (1000 * 60 * 60 * 24));
+}
+
+const tar_name = "NOIp";
+
+let tar_color;
+if (day <= 91) {
+  tar_color = "#e74c3c";
+}
+else if (day <= 182) {
+  tar_color = "#e67e22";
+}
+else if (day <= 273) {
+  tar_color = "#f1c40f";
+}
+else {
+  tar_color = "#2dce89";
+}

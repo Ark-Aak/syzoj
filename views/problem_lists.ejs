@@ -69,7 +69,7 @@
             <td class="font-content"><%- list.description %></td>
             <td>
               <a href="<%= syzoj.utils.makeUrl(['user', list.owner_id]) %>" style="color: inherit; ">
-                <%= list.owner.username %><% if (list.owner.nameplate) { %><%- list.owner.nameplate %><% } %>
+                <span class="user-<%= syzoj.utils.makeUserColor(list.owner.rating, list.owner.is_admin, list.owner.is_cheater) %>"><%= list.owner.username %></span><% if (list.owner.nameplate) { %><%- list.owner.nameplate %><% } %>
               </a>
             </td>
           </tr>

@@ -50,6 +50,15 @@ app.get('/api/v2/search/problems/:keyword*?', async (req, res) => {
       }
     });
 
+    let problemsByContent = await Problem.find({
+      where: {
+        description: TypeORM.Like(`%${req.params.keyword}%`)
+      },
+      order: {
+        id: 'ASC'
+      }
+    });
+
     let result = [];
 
     let id = parseInt(keyword);
@@ -60,6 +69,11 @@ app.get('/api/v2/search/problems/:keyword*?', async (req, res) => {
       }
     }
     await problems.forEachAsync(async problem => {
+      if (await problem.isAllowedUseBy(res.locals.user) && result.length < syzoj.config.page.edit_contest_problem_list && problem.id !== id) {
+        result.push(problem);
+      }
+    });
+    await problemsByContent.forEachAsync(async problem => {
       if (await problem.isAllowedUseBy(res.locals.user) && result.length < syzoj.config.page.edit_contest_problem_list && problem.id !== id) {
         result.push(problem);
       }

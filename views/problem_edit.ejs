@@ -38,6 +38,18 @@
           <textarea class="markdown-edit" rows="15" id="example" name="example"><%= problem.example %></textarea>
           <label style="margin-top: 15px; ">数据范围与提示</label>
           <textarea class="markdown-edit" rows="10" id="hint" name="limit_and_hint"><%= problem.limit_and_hint %></textarea>
+          
+          <label style="margin-top: 15px; ">题目难度</label>
+          <select class="ui dropdown" id="difficulty" name="difficulty">
+            <option value="暂无评定" <%= problem.difficulty === "暂无评定" ? 'selected': '' %>>暂无评定</option>
+            <option value="入门" <%= problem.difficulty === "入门" ? 'selected': '' %>>入门</option>
+            <option value="普及-" <%= problem.difficulty === "普及-" ? 'selected': '' %>>普及-</option>
+            <option value="普及/提高-" <%= problem.difficulty === "普及/提高-" ? 'selected': '' %>>普及/提高-</option>
+            <option value="普及+/提高" <%= problem.difficulty === "普及+/提高" ? 'selected': '' %>>普及+/提高</option>
+            <option value="提高+/省选-" <%= problem.difficulty === "提高+/省选-" ? 'selected': '' %>>提高+/省选-</option>
+            <option value="省选/NOI-" <%= problem.difficulty === "省选/NOI-" ? 'selected': '' %>>省选/NOI-</option>
+            <option value="NOI/NOI+/CTSC" <%= problem.difficulty === "NOI/NOI+/CTSC" ? 'selected': '' %>>NOI/NOI+/CTSC</option>
+          </select>
 
           <label style="margin-top: 15px; ">标签</label>
           <select class="ui fluid search dropdown" multiple="" id="search_tags" name="tags">
@@ -572,5 +584,10 @@ $(function () {
       saveRemoteData: false
     });
 });
+</script>
+<script>
+  $(function () {
+    $('.ui.dropdown:not(.search)').dropdown();
+  });
 </script>
 <% include footer %>

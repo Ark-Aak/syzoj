@@ -27,7 +27,8 @@ export default class ContestRanklist extends Model {
 
   async updatePlayer(contest, player) {
     let players = await this.getPlayers(), newPlayer = true;
-    for (let x of players) {
+    for (let i = 0; i < players.length; i++) {
+      const x = players[i];
       if (x.user_id === player.user_id) {
         newPlayer = false;
         break;

@@ -314,6 +314,38 @@ app.get('/contest/:id/ranklist', async (req, res) => {
   }
 });
 
+app.post('/contest/:id/cancel/:uid', async (req, res) => {
+  try {
+    let contest_id = parseInt(req.params.id);
+    let contest = await Contest.findById(contest_id);
+    const curUser = res.locals.user;
+
+    if (!contest) throw new ErrorMessage('无此比赛。');
+    if (!await contest.isSupervisior(curUser)) throw new ErrorMessage('您没有权限进行此操作。');
+    let uid = parseInt(req.params.uid);
+    let ranklist_id = contest.ranklist_id;
+    let ranklist = await ContestRanklist.findById(ranklist_id);
+    let players = await ranklist.getPlayers();
+    for (let player of players) {
+      await player.loadRelationships();
+      if (player.user_id === uid) {
+        player.score = 0;
+        player.score_details = {};
+        await player.save();
+        await ranklist.updatePlayer(contest, player);
+        await ranklist.save();
+        break;
+      }
+    }
+    res.redirect('/contest/' + contest_id + '/ranklist');
+  } catch (e) {
+    syzoj.log(e);
+    res.render('error', {
+      err: e
+    });
+  }
+});
+
 app.post('/api/contest/:id/set-official', async (req, res) => {
   try {
     let contest_id = parseInt(req.params.id);

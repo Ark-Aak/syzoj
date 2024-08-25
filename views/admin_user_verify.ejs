@@ -52,6 +52,7 @@ this.adminPage = 'user_verify';
           <template v-if="identity.role === 'student'">
             <div>高中毕业：{{ identity.graduation_year }} 年</div>
             <div>当前年级：{{ GradeCalc.getGrade(identity.graduation_year) }}</div>
+            <div>洛谷 uid：{{ identity.luogu_uid }}</div>
           </template>
         </td>
         <td>

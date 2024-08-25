@@ -747,7 +747,7 @@ app.get('/api/admin/user_verify', async (req, res) => {
   try {
     if (!res.locals.user || !await res.locals.user.hasPrivilege('manage_user')) throw new ErrorMessage('您没有权限进行此操作。');
 
-    let items = await UserIdentity.find({ where: '`status` IN ("pending", "rejected")' });
+    let items = await UserIdentity.find({ where: '`status` IN ("approved", "pending", "rejected")' });
 
     res.send({
       items: await items.mapAsync(async identity => {
@@ -755,6 +755,49 @@ app.get('/api/admin/user_verify', async (req, res) => {
         return identity.toJSON();
       }),
       stat: await UserIdentity.getStatistics()
+    });
+  } catch (e) {
+    syzoj.log(e);
+    res.send({ error: e.message });
+  }
+});
+
+app.get('/admin/user_tag', async (req, res) => {
+  try {
+    if (!res.locals.user || !await res.locals.user.hasPrivilege('manage_user')) throw new ErrorMessage('您没有权限进行此操作。');
+
+    res.render('admin_user_tag');
+  } catch (e) {
+    syzoj.log(e);
+    res.send({ error: e.message });
+  }
+})
+
+app.post('/api/admin/remove_nameplate/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    let user = await User.findOne({ where: '`id` = ' + id });
+
+    user.nameplate = "";
+    await user.save();
+    res.send({ error: null });
+  } catch (e) {
+    syzoj.log(e);
+    res.send({ error: e.message });
+  }
+})
+
+app.get('/api/admin/user_tag', async (req, res) => {
+  try {
+    if (!res.locals.user || !await res.locals.user.hasPrivilege('manage_user')) throw new ErrorMessage('您没有权限进行此操作。');
+
+    let items = await User.find({ where: '`nameplate` <> ""' });
+
+    res.send({
+      items: await items.mapAsync(async user => {
+        return user.toJSON();
+      })
     });
   } catch (e) {
     syzoj.log(e);

@@ -16,7 +16,8 @@ export enum Status {
   TIME_LIMIT_EXCEEDED = "Time Limit Exceeded",
   UNKNOWN = "Unknown",
   WRONG_ANSWER = "Wrong Answer",
-  WAITING = "Waiting"
+  WAITING = "Waiting",
+  CANCELED = "Canceled"
 }
 
 /* Quote */

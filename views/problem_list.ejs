@@ -21,7 +21,7 @@
     <% } %>
     <span class="ui label">
       上传者：
-      <a href="/user/<%= owner.id %>"><%= owner.username %></a>
+      <a href="/user/<%= owner.id %>"><span class="user-<%= syzoj.utils.makeUserColor(owner.rating, owner.is_admin, owner.is_cheater) %>"><%= owner.username %></span></a>
     </span>
     <% if (allowedEdit) { %>
       <a class="ui mini right floated labeled icon button" href="/list/<%= list.id %>/edit" style="margin-top: 10px;">

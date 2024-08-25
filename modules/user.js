@@ -245,6 +245,9 @@ app.post('/api/user/:id/verify', async (req, res) => {
         let year = parseInt(req.body.graduation_year);
         assert(Number.isInteger(year), '高中毕业年份必须是整数。');
         identity.graduation_year = year;
+        let uid = parseInt(req.body.luogu_uid);
+        assert(Number.isInteger(uid), '洛谷 uid 必须是整数。');
+        identity.luogu_uid = uid;
         break;
       }
       case 'teacher': break;
@@ -318,7 +321,7 @@ app.post('/user/:id/edit', async (req, res) => {
       user.password = req.body.new_password;
     }
 
-    if (res.locals.user && await res.locals.user.hasPrivilege('manage_user')) {
+    if (res.locals.user && await res.locals.user.hasPrivilege('superuser')) {
       if (!syzoj.utils.isValidUsername(req.body.username)) throw new ErrorMessage('无效的用户名。');
       user.username = req.body.username;
       user.email = req.body.email;

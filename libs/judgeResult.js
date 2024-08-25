@@ -20,7 +20,7 @@ function firstNonAC(t) {
         return interfaces.TestcaseResultType.Accepted;
     }
     else {
-        return t.find(r => r !== interfaces.TestcaseResultType.Accepted);
+        return t.find(r => (r !== interfaces.TestcaseResultType.Accepted && r != null));
     }
 }
 exports.firstNonAC = firstNonAC;
@@ -41,11 +41,11 @@ function convertResult(taskId, source) {
     }
     else if (source.judge != null && source.judge.subtasks != null) {
         const forEveryTestcase = function (map, reduce) {
-            const list = source.judge.subtasks.map(s => reduce(s.cases.filter(c => c.result != null).map(c => map(c.result))));
-            if (list.every(x => x == null))
+            const list = source.judge.subtasks.map(s => reduce(s.cases.filter(c => (c.result != null)).map(c => map(c.result))));
+            if (list.every(x => x == null)) {
                 return null;
-            else
-                return reduce(list);
+            }
+            else return reduce(list);
         };
         time = forEveryTestcase(c => (c.time ? c.time : 0), _.sum);
         memory = forEveryTestcase(c => (c.memory ? c.memory : 0), _.max);
@@ -56,7 +56,11 @@ function convertResult(taskId, source) {
         else {
             score = _.sum(source.judge.subtasks.map(s => s.score));
             const finalResult = forEveryTestcase(c => c.type, firstNonAC);
-            statusString = exports.statusToString[finalResult];
+            if (finalResult == null) {
+                winston.debug(`No testcases finished, returning system error`);
+                statusString = systemError;
+            }
+            else statusString = exports.statusToString[finalResult];
         }
     }
     else {

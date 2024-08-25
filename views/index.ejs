@@ -57,7 +57,7 @@
               <% ++i; %>
                 <tr>
                     <td><b><%= i %></b></td>
-                    <td><a href="<%= syzoj.utils.makeUrl(['user', user.id]) %>"><%= user.username %></a><% if (user.nameplate) { %><%- user.nameplate %><% } %></td>
+                    <td><a href="<%= syzoj.utils.makeUrl(['user', user.id]) %>"><span class="user-<%= syzoj.utils.makeUserColor(user.rating, user.is_admin, user.is_cheater) %>"><%= user.username %></span></a><% if (user.nameplate) { %><%- user.nameplate %><% } %></td>
                     <td style="font-content">
                       <script id="user-infomation-script-<%= i %>" data-cfasync="false">
                       (function () {
@@ -81,6 +81,58 @@
           <div style="text-align: center;">这里是空 der~</div>
         <% } %>
       </div>
+      <h4 class="ui dividing header"><i class="ui rss icon"></i>犇犇</h4>
+      <strong> 有什么新鲜事告诉大家 </strong>
+      <form class="ui reply form" method="post" action="/api/feed/new">
+        <div class="field">
+          <textarea name="content" class="markdown-edit" style="margin-top: 10px;"></textarea>
+        </div>
+        <div style="text-align: center; ">
+        <button id="submit_button" type="submit" class="ui labeled submit icon button">
+          <i class="icon edit"></i> 发射犇犇！
+        </button>
+        </div>
+      </form>
+      <% if (feeds.length) { %>
+        <div class="ui comments" style="max-width: none;">
+          <% for (let feed of feeds) { %>
+            <div class="comment">
+              <a class="avatar">
+                <img src="<%= syzoj.utils.gravatar(feed.user.email, 120) %>">
+              </a>
+              <div class="content">
+                <a class="author" href="<%= syzoj.utils.makeUrl(['user', feed.user_id]) %>"><span class="user-<%= syzoj.utils.makeUserColor(feed.user.rating, feed.user.is_admin, feed.user.is_cheater) %>"><%= feed.user.username %></span></a><% if (feed.user.nameplate) { %><%- feed.user.nameplate %><% } %>
+                <div class="metadata">
+                  <span class="date"><%= syzoj.utils.formatDate(feed.time) %></span>
+                </div>
+                <div class="text font-content" style="min-height: 19.5px; "><%- feed.rendered_content%></div>
+                <!--<% if (feed.allowedEdit) { %>
+                  <div class="actions"><a onclick="$('#modal-delete-<%= comment.id %>').modal('show')">删除</a></div>
+                  <div class="ui basic modal" id="modal-delete-<%= feed.id %>">
+                    <div class="ui icon header">
+                      <i class="trash icon"></i>
+                      <p style="margin-top: 15px; ">删除评论</p>
+                    </div>
+                    <div class="content" style="text-align: center; ">
+                      <p>确认删除这条评论吗？</p>
+                    </div>
+                    <div class="actions">
+                      <div class="ui red basic cancel inverted button">
+                        <i class="remove icon"></i>
+                        否
+                      </div>
+                      <a class="ui green ok inverted button" href-post="<%= syzoj.utils.makeUrl(['article', article.id, 'comment', comment.id, 'delete']) %>">
+                        <i class="checkmark icon"></i>
+                        是
+                      </a>
+                    </div>
+                  </div>
+                <% } %>-->
+              </div>
+            </div>
+          <% } %>
+        </div>
+      <% } %>
     </div>
     <div class="right floated five wide column side_bar">
         <%
@@ -97,6 +149,86 @@
             el: '#quote-container'
           });
         </script>
+      <% if (fortune) { %>
+        <%  let color;
+            if (fortune.fortune.indexOf('吉') != -1) color = '#0ccf00';
+            else if (fortune.fortune.indexOf('凶') != -1) color = '#f25e65';
+            else color = '#444';
+        %>
+        <h4 class="ui top attached block header">
+          <% if (user.canSignIn()) { %>
+            <i class="ui calendar icon"></i>
+            签到
+          <% } else { %>
+            <i class="ui magic icon"></i>
+            今日运势
+          <% } %>
+        </h4>
+        <div class="ui bottom attached segment">
+            <div style="height: 15px; "></div>
+            <% if (!user.canSignIn()) { %>
+            <div class="ui two column center aligned padded grid">
+                <div class="one column row">
+                    <div style="text-align: center; ">
+                        <div style="color: <%= color %>; font-size: 49px;"><%- (user.sex == -1 ? '♀ ' : '♂ ') + fortune.fortune + (user.sex == 1 ? ' <span style="transform: scaleX(-1); display: inline-block; ">♂</span>' : ' ♀') %></div>
+                    </div>
+                </div>
+                <div class="two column row">
+                    <div class="column">
+                        <div style="color: #0ccf00; ">
+                            <% if (fortune.good.length) { %>
+                            <strong>宜：</strong><%= fortune.good[0].title %>
+                            <br>
+                            <span style="color: #888; font-size: 0.7em; "><%= fortune.good[0].detail %></span>
+                            <div style="margin-top: 10px; "></div>
+                            <strong>宜：</strong><%= fortune.good[1].title %>
+                            <br>
+                            <span style="color: #888; font-size: 0.7em; "><%= fortune.good[1].detail %></span>
+                            <% } else { %>
+                            <strong>诸事不宜<br>
+                            </strong>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div style="color: #f25e65; ">
+                            <% if (fortune.bad.length) { %>
+                            <strong>忌：</strong><%= fortune.bad[0].title %>
+                            <br>
+                            <span style="color: #888; font-size: 0.7em; "><%= fortune.bad[0].detail %></span>
+                            <div style="margin-top: 10px; "></div>
+                            <strong>忌：</strong><%= fortune.bad[1].title %>
+                            <br>
+                            <span style="color: #888; font-size: 0.7em; "><%= fortune.bad[1].detail %></span>
+                            <% } else { %>
+                            <strong>万事皆宜<br>
+                            </strong>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center;">您已经连续签到了 <%= user.con_tot %> 天。</div>
+            <% } else { %>
+              <div class="ui center aligned padded grid">
+                <div class="one column row">
+                    <div style="text-align: center; border: 2px solid green; border-radius: 5px; padding: 40px 50px 40px 50px;">
+                      <span style="font-size: 106%; color: green; writing-mode: vertical-rl; margin-right: 3px;"><%= month %></span> <span style="color: green; font-size: 60px;"><%= date %></span> <span style="font-size: 106%; color: green; writing-mode: vertical-rl;"><%= days %></span>
+                    </div>
+                </div>
+                <center> <a style = "margin-top: 20px;" href-post="/signin" class="ui labeled icon mini green button"><i class="ui info icon"></i> 我上线啦</a> </center>
+              </div>
+            <% } %>
+        </div>
+      <% } %>
+      <h4 class="ui top attached block header"><i class="ui clock icon" style="display: inline-block; margin-right: .75rem;"></i>距离 <span style="color: <%= tar_color %>"> <%= tar_name %><%= tar_year %></span> 还有</h4>
+        <div class="ui bottom attached center aligned segment">
+          <svg width="140" height="140" viewBox="0 0 140 140">
+            <circle cx="70" cy="70" r="65" stroke-width="10" stroke="#E5E5E5" fill="none"></circle>
+            <circle cx="70" cy="70" r="65" stroke-width="10" stroke="<%= tar_color %>" fill="none" transform="matrix(0, -1, 1, 0, 0, 140)" stroke-dasharray="<%= tar_arc %> 409"></circle>
+            <text style="dominant-baseline:middle;text-anchor:middle;font-size: 30px;font-weight: 800; fill: <%= tar_color %>" y="70" x="70"><%= tar_day %>天</text>
+          </svg>
+        </div>
       <h4 class="ui top attached block header"><i class="ui rss icon"></i>最近更新</h4>
       <div class="ui bottom attached segment">
 	<table class="ui very basic center aligned table">
@@ -218,64 +350,12 @@
         });
       </script>
       <% } %>
-        <% if (fortune) { %>
-        <%  let color;
-            if (fortune.fortune.indexOf('吉') != -1) color = '#0ccf00';
-            else if (fortune.fortune.indexOf('凶') != -1) color = '#f25e65';
-            else color = '#444';
-        %>
-        <h4 class="ui top attached block header"><i class="ui magic icon"></i>今日运势</h4>
-        <div class="ui bottom attached segment">
-            <div style="height: 15px; "></div>
-            <div class="ui two column center aligned padded grid">
-                <div class="one column row">
-                    <div style="text-align: center; ">
-                        <div style="color: <%= color %>; font-size: 49px;"><%- (user.sex == -1 ? '♀ ' : '♂ ') + fortune.fortune + (user.sex == 1 ? ' <span style="transform: scaleX(-1); display: inline-block; ">♂</span>' : ' ♀') %></div>
-                    </div>
-                </div>
-                <div class="two column row">
-                    <div class="column">
-                        <div style="color: #0ccf00; ">
-                            <% if (fortune.good.length) { %>
-                            <strong>宜：</strong><%= fortune.good[0].title %>
-                            <br>
-                            <span style="color: #888; font-size: 0.7em; "><%= fortune.good[0].detail %></span>
-                            <div style="margin-top: 10px; "></div>
-                            <strong>宜：</strong><%= fortune.good[1].title %>
-                            <br>
-                            <span style="color: #888; font-size: 0.7em; "><%= fortune.good[1].detail %></span>
-                            <% } else { %>
-                            <strong>诸事不宜<br>
-                            </strong>
-                            <% } %>
-                        </div>
-                    </div>
-                    <div class="column">
-                        <div style="color: #f25e65; ">
-                            <% if (fortune.bad.length) { %>
-                            <strong>忌：</strong><%= fortune.bad[0].title %>
-                            <br>
-                            <span style="color: #888; font-size: 0.7em; "><%= fortune.bad[0].detail %></span>
-                            <div style="margin-top: 10px; "></div>
-                            <strong>忌：</strong><%= fortune.bad[1].title %>
-                            <br>
-                            <span style="color: #888; font-size: 0.7em; "><%= fortune.bad[1].detail %></span>
-                            <% } else { %>
-                            <strong>万事皆宜<br>
-                            </strong>
-                            <% } %>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <% } %>
       <h4 class="ui top attached block header"><i class="ui search icon"></i>搜索题目</h4>
       <div class="ui bottom attached segment">
         <form action="<%= syzoj.utils.makeUrl(['problems', 'search']) %>" method="get">
           <div class="ui search" style="width: 100%; ">
             <div class="ui left icon input" style="width: 100%; ">
-              <input class="prompt" style="width: 100%; " type="text" placeholder="ID / 题目名 …" name="keyword">
+              <input class="prompt" style="width: 100%; " type="text" placeholder="ID / 题目名 / 题目内容 …" name="keyword">
               <i class="search icon"></i>
             </div>
             <div class="results" style="width: 100%; "></div>

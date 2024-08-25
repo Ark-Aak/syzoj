@@ -12,17 +12,27 @@
   <h1><%= article.title %></h1>
  	<p style="margin-bottom: -5px; ">
 	<img style="vertical-align: middle; margin-bottom: 2px; margin-right: 2px; " src="<%= syzoj.utils.gravatar(article.user.email, 34) %>" width="17" height="17">
-	<b style="margin-right: 30px; "><a class="black-link" href="<%= syzoj.utils.makeUrl(['user', article.user_id]) %>"><%= article.user.username %></a><% if (article.user.nameplate) { %><%- article.user.nameplate %><% } %></b>
+	<b style="margin-right: 30px; "><a class="black-link" href="<%= syzoj.utils.makeUrl(['user', article.user_id]) %>"><span class="user-<%= syzoj.utils.makeUserColor(article.user.rating, article.user.is_admin, article.user.is_cheater) %>"><%= article.user.username %></span></a><% if (article.user.nameplate) { %><%- article.user.nameplate %><% } %></b>
 	<b style="margin-right: 30px; "><i class="calendar icon"></i> <%= syzoj.utils.formatDate(article.public_time) %></b>
   <% if (article.public_time !== article.update_time) { %><b style="margin-right: 30px; "><i class="edit icon"></i> <%= syzoj.utils.formatDate(article.update_time) %></b><% } %>
   <b style="margin-right: 30px; "><i class="eye icon"></i> <%= article.views %></b>
+  <% if (priority_show) { %> <b title="帖子的排序优先级，越大越靠前" style="margin-right: 30px; color: <%= priority_color %>"><i class="chart bar icon"></i> <%= article.priority %></b><% } %>
     <% if (article.allowedEdit) { %>
         <a style="margin-top: -4px; " class="ui mini right floated labeled icon button" href="<%= syzoj.utils.makeUrl(['article', article.id, 'edit']) %>"><i class="ui edit icon"></i>编辑</a>
         <a style="margin-top: -4px; margin-right: 3px; " class="ui mini red right floated labeled icon button" onclick="$('#modal-delete').modal('show')"><i class="ui trash icon"></i>删除</a>
-        <% } %>
-        <% if (article.problem) { %>
-          <a style="margin-top: -4px; margin-right: 3px; " class="ui mini right floated labeled icon primary button" href="<%= get_problem_url() %>"><i class="ui left arrow icon"></i> 返回题目</a>
-        <% } %>
+    <% } %>
+    <% if (canManage) { %>
+      <% if (article.is_show) { %>
+        <a style="margin-top: -4px; margin-right: 3px; " class="ui mini right floated labeled icon button" href-post="/article/<%= article.id %>/hide"><i class="ui eye slash icon"></i>隐藏</a>
+      <% } else { %>
+        <a style="margin-top: -4px; margin-right: 3px; " class="ui mini right floated labeled icon button" href-post="/article/<%= article.id %>/show"><i class="ui eye icon"></i>显示</a>
+      <% } %>
+      <a style="margin-top: -4px; margin-right: 3px;" class="ui mini red right floated labeled icon button" href-post="/article/<%= article.id %>/priority_down"><i class="ui thumbs down icon"></i>下沉</a>
+      <a style="margin-top: -4px; margin-right: 3px;" class="ui mini green right floated labeled icon button" href-post="/article/<%= article.id %>/priority_up"><i class="ui thumbs up icon"></i>上升</a>
+    <% } %>
+    <% if (article.problem) { %>
+      <a style="margin-top: -4px; margin-right: 3px; " class="ui mini right floated labeled icon primary button" href="<%= get_problem_url() %>"><i class="ui left arrow icon"></i> 返回题目</a>
+    <% } %>
  	</p>
   <div class="ui top attached existing segment">
 	  <div id="content" class="font-content"><%- article.rendered_content %></div>
@@ -31,10 +41,13 @@
     <div id="voteContainer">
       <span>
         <i class="ui thumbs up icon" :class="getVoteButtonClass(1)" @click="setVote(1)"></i>
-        <span class="count" style="margin-left: -.1em;">{{ vote && vote.total.up }}</span>
       </span>
       <span>
         <i class="ui thumbs down icon" :class="getVoteButtonClass(-1)" @click="setVote(-1)"></i>
+      </span>
+      <span style="margin-left: 10px;" :style="{ color: getVoteColor() }">
+        <i :class="getVoteIcon()"></i>
+        {{ vote && Math.abs(vote.total.up - vote.total.down) }}
       </span>
     </div>
     <style>
@@ -66,6 +79,14 @@
               list.push('disabled');
             }
             return list;
+          },
+          getVoteColor() {
+            if (!this.vote || this.vote.total.up == this.vote.total.down) return "#000000";
+            return this.vote.total.up - this.vote.total.down < 0 ? "#C02828" : "#219945";
+          },
+          getVoteIcon() {
+            if (!this.vote || this.vote.total.up == this.vote.total.down) return "ui minus circle icon";
+            return this.vote.total.up - this.vote.total.down < 0 ? "ui angle double down icon" : "ui angle double up icon";
           },
           init() {
             $.get(`/api/article/${this.article_id}/vote`, resp => {
@@ -100,7 +121,7 @@
           <img src="<%= syzoj.utils.gravatar(comment.user.email, 120) %>">
         </a>
         <div class="content">
-          <a class="author" href="<%= syzoj.utils.makeUrl(['user', comment.user_id]) %>"><%= comment.user.username %></a><% if (comment.user.nameplate) { %><%- comment.user.nameplate %><% } %>
+          <a class="author" href="<%= syzoj.utils.makeUrl(['user', comment.user_id]) %>"><span class="user-<%= syzoj.utils.makeUserColor(comment.user.rating, comment.user.is_admin, comment.user.is_cheater) %>"><%= comment.user.username %></span></a><% if (comment.user.nameplate) { %><%- comment.user.nameplate %><% } %>
           <div class="metadata">
             <span class="date"><%= syzoj.utils.formatDate(comment.public_time) %></span>
           </div>

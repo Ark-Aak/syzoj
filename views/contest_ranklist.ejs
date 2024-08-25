@@ -48,6 +48,9 @@ td#first-ac {
         <% if (contest.type === 'noi' || contest.type === 'ioi' || contest.type === 'crt') { %>
           <th>总分</th>
         <% } %>
+        <% if (contest.isEnded()) { %>
+          <th>取消成绩</th>
+        <% } %>
       </tr>
     </thead>
     <tbody>
@@ -114,7 +117,7 @@ td#first-ac {
           </td>
           <td class="ranklist-item<% if (item.is_official) { %> official<% } %>">
             <span class="ranklist-user">
-              <a href="<%= syzoj.utils.makeUrl(['user', item.user.id]) %>"><%= item.user.username %></a><% if (item.user.nameplate) { %><%- item.user.nameplate %><% } %>
+              <a href="<%= syzoj.utils.makeUrl(['user', item.user.id]) %>"><span class="user-<%= syzoj.utils.makeUserColor(item.user.rating, item.user.is_admin, item.user.is_cheater) %>"><%= item.user.username %></span></a><% if (item.user.nameplate) { %><%- item.user.nameplate %><% } %>
             </span>
             <% if (isSupervisior) { %>
               <div class="ui popup">
@@ -192,6 +195,11 @@ td#first-ac {
               <div class="submit_time">
                 <%= syzoj.utils.formatTime(latest - contest.start_time) %>
               </div>
+            </td>
+          <% } %>
+          <% if (contest.isEnded()) { %>
+            <td>
+              <a style="color: black" href="javascript:void(0)" href-post="/contest/<%= contest.id %>/cancel/<%= item.player.user_id %>"><i class="cancel icon"></i></a>
             </td>
           <% } %>
         </tr>

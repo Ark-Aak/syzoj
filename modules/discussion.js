@@ -3,15 +3,17 @@ let Article = syzoj.model('article');
 let ArticleComment = syzoj.model('article-comment');
 let User = syzoj.model('user');
 let Contest = syzoj.model('contest');
+let Feed = syzoj.model('feed');
 
 const forum_list = syzoj.forum_list = [
-  { name: 'global', title: '全局版块', icon: 'world', default: true },
+  { name: 'global', title: '全局版块', icon: 'world', default: true, admin: false },
   ...syzoj.config.discussion_forums,
-  { name: 'problems', title: '题目', icon: 'book' },
-  { name: 'solutions', title: '题解', icon: 'code' }
+  { name: 'problems', title: '题目', icon: 'book', admin: false },
+  { name: 'solutions', title: '题解', icon: 'code', admin: false }
 ];
 const forum_map = syzoj.forum_map = new Map(forum_list.map(forum => [forum.name, forum]));
 const forums = forum_list.map(({ name }) => name);
+const forums_admin = forum_list.filter(forum => forum.admin).map(forum => forum.name);
 const problem_forums = syzoj.problem_forums = ['problems', 'solutions'];
 
 app.get('/discussion/:type?', async (req, res) => {
@@ -22,9 +24,15 @@ app.get('/discussion/:type?', async (req, res) => {
       res.redirect(syzoj.utils.makeUrl(['discussion', 'global']));
     }
 
+    if (forums_admin.includes(forum) && (!res.locals.user || !await res.locals.user.hasPrivilege('view_admin_forum'))) {
+      throw new ErrorMessage('您没有权限进行此操作。');
+    }
+
     let where = { forum };
+    if (!res.locals.user || !await res.locals.user.hasPrivilege('manage_discussion')) where.is_show = 1;
     let paginate = syzoj.utils.paginate(await Article.countForPagination(where), req.query.page, syzoj.config.page.discussion);
     let articles = await Article.queryPage(paginate, where, {
+      priority: 'DESC',
       sort_time: 'DESC'
     });
 
@@ -87,6 +95,78 @@ app.get('/discussion/problem/:pid', async (req, res) => {
   }
 });
 
+app.post('/article/:id/show', async (req, res) => {
+  try {
+    let id = parseInt(req.params.id);
+    let article = await Article.findById(id);
+    if (!article) throw new ErrorMessage('无此帖子。');
+    if (!res.locals.user || !await res.locals.user.hasPrivilege('manage_discussion')) throw new ErrorMessage('您没有权限进行此操作。');
+    await article.loadRelationships();
+    article.is_show = 1;
+    await article.save();
+    res.redirect(syzoj.utils.makeUrl(['article', article.id]));
+  } catch (e) {
+    syzoj.log(e);
+    res.render('error', {
+      err: e
+    });
+  }
+});
+
+app.post('/article/:id/hide', async (req, res) => {
+  try {
+    let id = parseInt(req.params.id);
+    let article = await Article.findById(id);
+    if (!article) throw new ErrorMessage('无此帖子。');
+    if (!res.locals.user || !await res.locals.user.hasPrivilege('manage_discussion')) throw new ErrorMessage('您没有权限进行此操作。');
+    await article.loadRelationships();
+    article.is_show = 0;
+    await article.save();
+    res.redirect(syzoj.utils.makeUrl(['article', article.id]));
+  } catch (e) {
+    syzoj.log(e);
+    res.render('error', {
+      err: e
+    });
+  }
+});
+
+app.post('/article/:id/priority_up', async (req, res) => {
+  try {
+    let id = parseInt(req.params.id);
+    let article = await Article.findById(id);
+    if (!article) throw new ErrorMessage('无此帖子。');
+    if (!res.locals.user || !await res.locals.user.hasPrivilege('manage_discussion')) throw new ErrorMessage('您没有权限进行此操作。');
+    await article.loadRelationships();
+    article.priority += 1;
+    await article.save();
+    res.redirect(syzoj.utils.makeUrl(['article', article.id]));
+  } catch (e) {
+    syzoj.log(e);
+    res.render('error', {
+      err: e
+    });
+  }
+});
+
+app.post('/article/:id/priority_down', async (req, res) => {
+  try {
+    let id = parseInt(req.params.id);
+    let article = await Article.findById(id);
+    if (!article) throw new ErrorMessage('无此帖子。');
+    if (!res.locals.user || !await res.locals.user.hasPrivilege('manage_discussion')) throw new ErrorMessage('您没有权限进行此操作。');
+    await article.loadRelationships();
+    article.priority -= 1;
+    await article.save();
+    res.redirect(syzoj.utils.makeUrl(['article', article.id]));
+  } catch (e) {
+    syzoj.log(e);
+    res.render('error', {
+      err: e
+    });
+  }
+});
+
 app.get('/article/:id', app.useRestriction, async (req, res) => {
   try {
     let id = parseInt(req.params.id);
@@ -104,6 +184,8 @@ app.get('/article/:id', app.useRestriction, async (req, res) => {
     let comments = await ArticleComment.queryPage(paginate, where, {
       public_time: 'DESC'
     });
+
+    if (!await article.isAllowedVisitBy(res.locals.user)) throw new ErrorMessage('您没有权限查看本帖子。');
 
     for (let comment of comments) {
       comment.rendered_content = await syzoj.utils.markdown(comment.content);
@@ -136,7 +218,10 @@ app.get('/article/:id', app.useRestriction, async (req, res) => {
       problem: problem,
       commentsCount: commentsCount,
       is_edit: false,
-      contest: contest
+      contest: contest,
+      canManage: res.locals.user && await res.locals.user.hasPrivilege('manage_discussion'),
+      priority_color: article.priority < 0 ? "#C02828" : "#219945",
+      priority_show: article.priority !== 0
     });
   } catch (e) {
     syzoj.log(e);
@@ -173,6 +258,9 @@ app.get('/article/:id/edit', async (req, res) => {
         article.problem = problem;
       }
     } else {
+      if (!article.is_show && !await article.isAllowedVisitBy(res.locals.user)) {
+        throw new ErrorMessage('您没有权限修改本帖子。');
+      }
       article.allowedEdit = await article.isAllowedEditBy(res.locals.user);
       if (article.problem_id) {
         article.problem = await Problem.findById(article.problem_id);
@@ -360,6 +448,25 @@ app.post('/api/article/:id/vote/:vote', async (req, res) => {
       error: null,
       result
     });
+  } catch (e) {
+    syzoj.log(e);
+    res.send({
+      error: e.message
+    });
+  }
+});
+
+app.post('/api/feed/new', async (req, res) => {
+  try {
+    const { user } = res.locals;
+    if (!user) throw new ErrorMessage('请登录后继续。', { '登录': syzoj.utils.makeUrl(['login'], { 'url': req.originalUrl }) });
+    if (!req.body.content) throw new ErrorMessage('犇犇内容为空。');
+    let feed = await Feed.create();
+    feed.user_id = user.id;
+    feed.time = syzoj.utils.getCurrentDate();
+    feed.content = req.body.content;
+    await feed.save();
+    res.redirect("/");
   } catch (e) {
     syzoj.log(e);
     res.send({

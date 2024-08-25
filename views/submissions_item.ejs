@@ -20,7 +20,7 @@ const userUrl = <%- serializejs(syzoj.utils.makeUrl(['user', '20000528'])) %>;
 
 Vue.component('submission-item', {
   template: '#submissionItemTemplate',
-  props: ['data', 'config', 'showRejudge', 'progress', 'compiling', 'rough'],
+  props: ['data', 'config', 'showRejudge', 'showCancel', 'progress', 'compiling', 'rough'],
   computed: {
     statusString() {
       const data = this.data;
@@ -126,6 +126,30 @@ Vue.component('submission-item', {
     </div>
     <% } %>
   </td>
+  <td v-if="showCancel">
+    <a id="cancel-button" :onclick="'check_cancel()'" style="color: #000; " href="#"><i class="times icon"></i></a>
+    <% if (active === 'submission') { %>
+    <div class="ui basic modal" id="modal-cancel">
+      <div class="ui icon header">
+        <i class="ban icon"></i>
+        <p style="margin-top: 15px; ">取消成绩</p>
+      </div>
+      <div class="content" style="text-align: center; ">
+        <p>确认取消该提交记录的成绩吗？</p>
+      </div>
+      <div class="actions">
+        <div class="ui red basic cancel inverted button">
+          <i class="remove icon"></i>
+          否
+        </div>
+        <a class="ui green ok inverted button" :href-post="submissionLink + '/cancel'">
+          <i class="checkmark icon"></i>
+          是
+        </a>
+      </div>
+    </div>
+    <% } %>
+  </td>
 </tr>
 </script>
 <% if (active === 'submission') { %>
@@ -137,6 +161,9 @@ function check_rejudge(pending) {
     $('#warning_pending').css('display', 'none');
   }
   $('#modal-rejudge').modal('show');
+}
+function check_cancel() {
+  $('#modal-cancel').modal('show');
 }
 </script>
 <% } %>

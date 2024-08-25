@@ -13,6 +13,7 @@
     <link href="<%- selfLib('math.css') %>" rel="stylesheet">
     <link href="<%- selfLib('style.css') %>?20181212" rel="stylesheet">
     <link href="<%- selfLib('style-dark.css') %>" rel="stylesheet" media="(prefers-color-scheme: dark)">
+    <link href="<%- selfLib('namecolor.css') %>" rel="stylesheet">
     <link href="<%- lib('morris.js/0.5.1/morris.css') %>" rel="stylesheet">
     <% if (useLocalLibs || !syzoj.config.google_fonts || !['like-google-fonts', 'like-local', 'built-in'].includes(syzoj.config.google_fonts.type)) { %>
       <link href="<%- syzoj.utils.makeUrl(['google-fonts', 'fira-mono.css']) %>" rel="stylesheet">
@@ -36,6 +37,7 @@
       <link href="<%- this.builtInCdnUrl %>/google-fonts/exo-2.css" rel="stylesheet">
     <% } %>
     <script data-cfasync="false" src="<%- lib('jquery/3.3.1/jquery.min.js') %>"></script>
+    <script data-cfasync="false" src="<%- selfLib('jquery.color.min.js') %>"></script>
     <% if (syzoj.config.google_analytics && syzoj.config.google_analytics !== 'UA-XXXXXXXX-X') { %>
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -65,8 +67,30 @@
       </script>
     <% } %>
 </head>
-<body>
-    <div class="ui fixed borderless menu" style="position: fixed; height: 49px; ">
+<style>
+
+  .transparent-background {
+      position: relative;
+      background-image: url("<%- selfLib('wallhaven-3lv8j6.jpg') %>");
+      background-size: cover;
+      height: 100vh;
+      width: 100vw;
+      z-index: -999;
+  }
+  .transparent-background::before {
+    position: absolute;
+      content: '';
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.4); /* 调整透明度的地方 */
+      z-index: -998;
+  }
+  
+</style>
+<body class="transparent-background">
+    <div class="ui fixed borderless menu" style="position: fixed; height: 49px;">
         <div class="ui container">
             <%
             if (syzoj.config.logo.url) {
@@ -95,8 +119,9 @@
               <% if (user) { %>
               <a href="<%= syzoj.utils.makeUrl(['user', user.id]) %>" style="color: inherit; ">
               <div class="ui simple dropdown item">
-                <%= user.username %><% if (user.nameplate) { %><%- user.nameplate %><% } %> <i class="dropdown icon"></i>
+                <span class="user-<%= syzoj.utils.makeUserColor(user.rating, user.is_admin, user.is_cheater) %>"><%= user.username %></span><% if (user.nameplate) { %><%- user.nameplate %><% } %> <i class="dropdown icon"></i>
                 <div class="menu">
+                  <a class="item" href="<%= syzoj.utils.makeUrl(['notification', 'list']) %>"><i class="bell icon"></i>通知消息</a>
                   <a class="item" href="<%= syzoj.utils.makeUrl(['user', user.id, 'edit']) %>"><i class="edit icon"></i>修改资料</a>
                   <a class="item" href="<%= syzoj.utils.makeUrl(['problems', 'user', user.id]) %>"><i class="book icon"></i>我的题目</a>
                   <% if (user.is_admin) { %>

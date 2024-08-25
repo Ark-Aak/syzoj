@@ -65,11 +65,20 @@
     <tbody>
     <% for (let article of articles) { %>
         <tr>
-            <td class="left aligned"><a href="<%= syzoj.utils.makeUrl(['article', article.id], is_contest && { contest_id: contest.id }) %>"><%= article.title %></a></td>
+            <td class="left aligned">
+              <a href="<%= syzoj.utils.makeUrl(['article', article.id], is_contest && { contest_id: contest.id }) %>"><%= article.title %></a>
+              <% if (!article.is_show) { %>
+                <span class="ui tiny violet label" style="margin-left:5px">Hidden</span>
+              <% } %>
+            </td>
             <% if (in_problems) { %>
-              <td><a href="<%= get_list_url(article.forum, article.problem.id) %>"><%= article.problem.title %></a></td>
+              <td>
+                <a href="<%= get_list_url(article.forum, article.problem.id) %>"><%= article.problem.title %></a>
+              </td>
             <% } %>
-            <td><a href="<%= syzoj.utils.makeUrl(['user', article.user_id]) %>"><%= article.user.username %></a><% if (article.user.nameplate) { %><%- article.user.nameplate %><% } %></td>
+            <td>
+              <a href="<%= syzoj.utils.makeUrl(['user', article.user_id]) %>"><%= article.user.username %></a><% if (article.user.nameplate) { %><%- article.user.nameplate %><% } %>
+            </td>
             <td><%= article.views %></td>
             <td><%= article.comments_num %></td>
             <td><%= article.vote_up %></td>

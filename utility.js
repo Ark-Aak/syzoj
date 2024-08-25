@@ -377,5 +377,14 @@ module.exports = {
   },
   allowedSeeingQuote(user) {
     return syzoj.config.custom_hitokoto && syzoj.config.custom_hitokoto.enabled && user && user.can_see_quote;
+  },
+  makeUserColor(rating, is_admin, is_cheater) {
+    if (is_admin) return 'purple';
+    else if (is_cheater) return 'brown';
+    else if (rating <= 1500) return 'gray';
+    else if (rating < 1600) return 'blue';
+    else if (rating < 1800) return 'green';
+    else if (rating < 2000) return 'orange';
+    else return 'red';
   }
 };

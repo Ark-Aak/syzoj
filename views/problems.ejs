@@ -19,7 +19,7 @@
             <div class="tag_group">
               <% for (let provider of providers) { %>
                 <div data-user-id="<%= provider.id %>" class="ui label label_toggle_provider">
-                  上传者：<a href="<%= syzoj.utils.makeUrl(['user', provider.id]) %>"><%= provider.username %></a>
+                  上传者：<a href="<%= syzoj.utils.makeUrl(['user', provider.id]) %>"><span class="user-<%= syzoj.utils.makeUserColor(provider.rating, provider.is_admin, provider.is_cheater) %>"><%= provider.username %></span></a>
                   <i class="ui delete icon"></i>
                 </div>
               <% } %>
@@ -28,7 +28,7 @@
             <form action="<%= syzoj.utils.makeUrl(['problems', 'search']) %>" method="get">
               <div class="ui search" style="width: 280px; height: 28px; margin-top: -5.3px; ">
                 <div class="ui left icon input" style="width: 100%; ">
-                  <input class="prompt" style="width: 100%; " type="text" value="<%= req.query.keyword %>" placeholder="ID / 题目名 …" name="keyword">
+                  <input class="prompt" style="width: 100%; " type="text" value="<%= req.query.keyword %>" placeholder="ID / 题目名 / 题目内容 …" name="keyword">
                   <i class="search icon"></i>
                 </div>
                 <div class="results" style="width: 100%; "></div>
@@ -122,6 +122,7 @@
               <div class="menu">
                 <a class="item" href="<%= syzoj.utils.makeUrl(['problem', 0, 'edit']) %>"><i class="file icon"></i> 新建题目</a>
                 <a class="item" href="<%= syzoj.utils.makeUrl(['problem', 0, 'import']) %>"><i class="cloud download icon"></i> 导入题目</a>
+                <a class="item" href="<%= syzoj.utils.makeUrl(['problem', 0, 'import_lyrio']) %>"><i class="cloud download icon"></i> 导入题目 (LOJ)</a>
               </div>
               </div>
             </div>
@@ -187,6 +188,7 @@
         <% } %>
         <th class="one wide"><%- createSortableTitle('id', '编号', true) %></th>
         <th class="left aligned"><%- createSortableTitle('title', '题目名称', true) %></th>
+        <th >难度</th>
         <th class="one wide"><%- createSortableTitle('ac_num', '通过', false) %></th>
         <th class="one wide"><%- createSortableTitle('submit_num', '提交', false) %></th>
         <th class="one wide">通过率</th>
@@ -243,6 +245,7 @@
                 %>
               </div>
             </td>
+            <td><%= problem.difficulty || '' %></td>
             <td><%= problem.ac_num || '' %></td>
             <td><%= problem.submit_num || '' %></td>
             <td><%= problem.submit_num != 0 ? (((problem.ac_num / problem.submit_num * 100) || 0).toFixed(2) + '%') : '-' %></td>

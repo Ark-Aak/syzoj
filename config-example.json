@@ -66,7 +66,8 @@
     "contest": 10,
     "list": 10,
     "edit_contest_problem_list": 10,
-    "edit_problem_tag_list": 10
+    "edit_problem_tag_list": 10,
+    "notification": 10
   },
   "enabled_languages": [
     "cpp",

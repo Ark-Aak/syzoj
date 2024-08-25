@@ -176,6 +176,13 @@ export default class JudgeState extends Model {
     });
   }
 
+  async cancel() {
+    await this.loadRelationships();
+    this.status = Status.CANCELED;
+    this.score = 0;
+    await this.save();
+  }
+
   async getProblemType() {
     await this.loadRelationships();
     return this.problem.type;

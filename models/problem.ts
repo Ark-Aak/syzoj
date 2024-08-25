@@ -32,6 +32,17 @@ enum ProblemType {
   Interaction = "interaction"
 }
 
+enum Difficulty {
+  Undefined = "暂无评定",
+  Rank1 = "入门",
+  Rank2 = "普及-",
+  Rank3 = "普及/提高-",
+  Rank4 = "普及+/提高",
+  Rank5 = "提高+/省选-",
+  Rank6 = "省选/NOI-",
+  Rank7 = "NOI/NOI+/CTSC"
+}
+
 const statisticsTypes = {
   fastest: ['total_time', 'ASC'],
   slowest: ['total_time', 'DESC'],
@@ -120,6 +131,13 @@ export default class Problem extends Model {
       default: ProblemType.Traditional
   })
   type: ProblemType;
+
+  @TypeORM.Column({ 
+    type: "enum",
+    enum: Difficulty,
+    default: Difficulty.Undefined
+  })
+  difficulty: Difficulty;
 
   user?: User;
   publicizer?: User;

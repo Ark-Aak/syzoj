@@ -47,6 +47,12 @@ export default class User extends Model {
   @TypeORM.Column({ nullable: true, type: "boolean" })
   is_admin: boolean;
 
+  @TypeORM.Column({ nullable: true, type: "boolean" })
+  is_cheater: boolean;
+
+  @TypeORM.Column({ nullable: true, type: "boolean" })
+  banned: boolean;
+
   @TypeORM.Index()
   @TypeORM.Column({ nullable: true, type: "boolean" })
   is_show: boolean;
@@ -79,6 +85,12 @@ export default class User extends Model {
   @TypeORM.Column({ nullable: true, type: "integer" })
   register_time: number;
 
+  @TypeORM.Column({ type: "integer", default: 0 })
+  last_sigin: number;
+
+  @TypeORM.Column({ type: "integer", default: 0 })
+  con_tot: number;
+
   privilege_cache?: Map<string, boolean>;
 
   static async fromEmail(email): Promise<User> {
@@ -97,6 +109,29 @@ export default class User extends Model {
     });
   }
 
+  async updateSignIn() {
+    console.log("cur_date:", syzoj.utils.getCurrentDate(true));
+    const now = syzoj.utils.getCurrentDate(true);
+    console.log(now);
+    const timeDiff = Math.abs(now - this.last_sigin);
+    let diffDays = Math.ceil(timeDiff / (60 * 60 * 24));
+    if (diffDays == 0) return;
+    if (diffDays > 20) diffDays = 20;
+    const reduce = diffDays == 1 ? 0 : ((1 << (diffDays - 1)) - 1);
+    this.con_tot -= reduce;
+    if (this.con_tot < 0) this.con_tot = 0;
+    this.con_tot++;
+    this.last_sigin = now;
+    await this.save();
+  }
+
+  canSignIn() {
+    const now = syzoj.utils.getCurrentDate(true);
+    const timeDiff = Math.abs(now - this.last_sigin);
+    const diffDays = Math.ceil(timeDiff / (60 * 60 * 24));
+    return diffDays > 0;
+  }
+
   async isAllowedEditBy(user) {
     if (!user) return false;
     if (await user.hasPrivilege('manage_user')) return true;
@@ -110,6 +145,14 @@ export default class User extends Model {
                      .andWhere('status = :status', { status: 'Accepted' })
                      .andWhere('type != 1')
                      .orderBy({ problem_id: 'ASC' })
+  }
+
+  toJSON() {
+    return {
+      user_id: this.id,
+      nameplate: this.nameplate,
+      username: this.username
+    }
   }
 
   async refreshSubmitInfo() {
@@ -218,7 +261,9 @@ export default class User extends Model {
   }
 
   async hasPrivilege(privilege): Promise<boolean> {
-    if (this.is_admin) return true;
+    if (this.is_admin) {
+      return true;
+    }
     if (this.ensurePrivilegeCache().has(privilege)) return this.privilege_cache.get(privilege);
 
     const x = await UserPrivilege.findOne({ where: { user_id: this.id, privilege: privilege } });

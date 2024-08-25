@@ -23,7 +23,7 @@ this.adminPage = 'invitation_code';
         <a href="javascript:;" title="点击复制" data-click-copy="<%= code.code %>"><%= code.code %></a>
       </td>
       <td>
-        <a href="<%= syzoj.utils.makeUrl(['user', code.creator.id]) %>" target="_blank"><%= code.creator.username %></a>
+        <a href="<%= syzoj.utils.makeUrl(['user', code.creator.id]) %>" target="_blank"><span class="user-<%= syzoj.utils.makeUserColor(code.creator.rating, code.creator.is_admin, code.creator.is_cheater) %>"><%= code.creator.username %></span></a>
       </td>
       <td><%= syzoj.utils.formatDate(code.creation_time.getTime() / 1000) %></td>
       <td style="text-align: center;">

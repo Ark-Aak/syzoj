@@ -12,7 +12,7 @@
           <input type="hidden" name="type" value="<%= problem.type %>">
           <div class="ui pointing secondary menu" id="problem-type-tab" style="margin-top: -10px; ">
             <a class="<%= problem.type === 'traditional' ? 'active ' : '' %>item" data-tab="traditional">传统</a>
-            <a class="<%= problem.type === 'interaction' ? 'active ' : '' %>item" data-tab="interaction">交互</a>
+            <a class="<%= problem.type === 'interaction' ? 'active ' : '' %>item" data-tab="interaction">交互 (Header)</a>
             <a class="<%= problem.type === 'submit-answer' ? 'active ' : '' %>item" data-tab="submit-answer">提交答案</a>
           </div>
           <div class="ui <%= problem.type !== 'submit-answer' ? 'active ' : '' %>tab" data-tab="traditional" data-tab="interaction">

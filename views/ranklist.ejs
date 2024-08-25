@@ -47,7 +47,7 @@
             %>
             <tr>
 		        	<td><b><%= i %></b></td>
-		        	<td><a href="<%= syzoj.utils.makeUrl(['user', user.id]) %>"><%= user.username %></a><% if (user.nameplate) { %><%- user.nameplate %><% } %></td>
+		        	<td><a href="<%= syzoj.utils.makeUrl(['user', user.id]) %>"><span class="user-<%= syzoj.utils.makeUserColor(user.rating, user.is_admin, user.is_cheater) %>"><%= user.username %></span></a><% if (user.nameplate) { %><%- user.nameplate %><% } %></td>
 		        	<td class="font-content">
               <script id="user-infomation-script-<%= i %>" data-cfasync="false">
               (function () {
